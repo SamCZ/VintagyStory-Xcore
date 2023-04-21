@@ -1,0 +1,13 @@
+{
+  "type": "code",
+  "side": "Server",
+  "modid": "Xcore",
+  "name": "Xcore Command Utilities",
+  "author": "Freki",
+  "description": "Ability to set homes and more.",
+  "version": "0.0.1",
+  "dependency": {
+    "game": ""
+  },
+  "website": "https://github.com/SamCZ/VintagyStory-Xcore"
+}
