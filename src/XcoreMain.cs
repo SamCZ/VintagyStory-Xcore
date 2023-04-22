@@ -22,6 +22,7 @@ namespace VintageEx
         }
 
         private Dictionary<string, PlayerInfo> m_PlayerInfos;
+        private XcorePluginConfig m_PluginConfig;
 
         private PlayerEvents m_PlayerEvents;
 
@@ -47,9 +48,16 @@ namespace VintageEx
             api.Logger.Log(EnumLogType.Event, "Xcore plugin loaded.");
         }
 
-        private string GetConfigFilePath(string configName)
+        private string GetConfigFilePath(string configName, bool worldSpecific)
         {
-            return $"Xcore/{GetWorldName()}/{configName}.json";
+            if (worldSpecific)
+            {
+                return $"Xcore/{GetWorldName()}/{configName}.json";
+            }
+            else
+            {
+                return $"Xcore/{configName}.json";
+            }
         }
 
         public PlayerInfo GetPlayerInfo(IServerPlayer player)
@@ -70,19 +78,28 @@ namespace VintageEx
 
         private void SaveConfig()
         {
-            m_API.StoreModConfig(m_PlayerInfos, GetConfigFilePath("PlayerData"));
+            m_API.StoreModConfig(m_PlayerInfos, GetConfigFilePath("PlayerData", true));
+            m_API.StoreModConfig(m_PluginConfig, GetConfigFilePath("Xcore", false));
 
             m_API.Logger.Log(EnumLogType.Event, "[Xcore] Config saved.");
         }
 
         private void LoadConfig()
         {
-            m_PlayerInfos = m_API.LoadModConfig<Dictionary<string, PlayerInfo>>(GetConfigFilePath("PlayerData"));
+            m_PlayerInfos = m_API.LoadModConfig<Dictionary<string, PlayerInfo>>(GetConfigFilePath("PlayerData", true));
 
             if (m_PlayerInfos == null)
             {
                 m_PlayerInfos = new Dictionary<string, PlayerInfo>();
-                m_API.StoreModConfig(m_PlayerInfos, GetConfigFilePath("PlayerData"));
+                m_API.StoreModConfig(m_PlayerInfos, GetConfigFilePath("PlayerData", true));
+            }
+
+            m_PluginConfig = m_API.LoadModConfig<XcorePluginConfig>(GetConfigFilePath("Xcore", false));
+
+            if (m_PluginConfig == null)
+            {
+                m_PluginConfig = new XcorePluginConfig();
+                m_API.StoreModConfig(m_PluginConfig, GetConfigFilePath("Xcore", false));
             }
         }
 
@@ -101,6 +118,12 @@ namespace VintageEx
            if (args.Caller.Player is IServerPlayer player)
            {
                PlayerInfo playerInfo = GetPlayerInfo(player);
+
+               if (playerInfo.PlayerHomes.Count > m_PluginConfig.PlayerMaxHomes)
+               {
+                   player.SendMessage(0, "<strong>You used max number of homes ! Delete some to create new one.</strong>", EnumChatType.OwnMessage);
+                   return TextCommandResult.Success();
+               }
 
                if (args.Parsers[0].IsMissing == true)
                {
@@ -124,6 +147,14 @@ namespace VintageEx
         {
             if (args.Caller.Player is IServerPlayer player)
             {
+                int homeCooldownTime = player.Entity.RemainingActivityTime("HomeCooldown");
+
+                if (homeCooldownTime > 0)
+                {
+                    player.SendMessage(0, $"You need to wait <strong>{homeCooldownTime / 1000} seconds</strong> more to be able to teleport.", EnumChatType.OwnMessage);
+                    return TextCommandResult.Success();
+                }
+
                 PlayerInfo playerInfo = GetPlayerInfo(player);
 
                 EntityPos homePos = null;
@@ -142,6 +173,8 @@ namespace VintageEx
                 {
                     player.SendMessage(0, "Teleporting...", EnumChatType.OwnMessage);
                     player.Entity.TeleportTo(homePos);
+                    player.Entity.SetActivityRunning("HomeCooldown", 1000 * m_PluginConfig.PlayerHomeTeleportCooldownSeconds);
+
                 }
                 else
                 {
