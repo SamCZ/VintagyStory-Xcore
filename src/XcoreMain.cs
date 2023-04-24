@@ -78,10 +78,18 @@ namespace VintageEx
 
         private void SaveConfig()
         {
-            m_API.StoreModConfig(m_PlayerInfos, GetConfigFilePath("PlayerData", true));
-            m_API.StoreModConfig(m_PluginConfig, GetConfigFilePath("Xcore", false));
+            try
+            {
+                m_API.StoreModConfig(m_PlayerInfos, GetConfigFilePath("PlayerData", true));
+                m_API.StoreModConfig(m_PluginConfig, GetConfigFilePath("Xcore", false));
 
-            m_API.Logger.Log(EnumLogType.Event, "[Xcore] Config saved.");
+                m_API.Logger.Log(EnumLogType.Event, "[Xcore] Config saved.");
+            }
+            catch (Exception e)
+            {
+                m_API.Logger.Log(EnumLogType.Error, "[Xcore] Config cannot be saved!");
+                m_API.Logger.Log(EnumLogType.Error, e.ToString());
+            }
         }
 
         private void LoadConfig()
@@ -138,6 +146,8 @@ namespace VintageEx
 
                    player.SendMessage(0, $"Home {homeName} set.", EnumChatType.OwnMessage);
                }
+
+               SaveConfig();
            }
 
            return TextCommandResult.Success();
@@ -199,6 +209,8 @@ namespace VintageEx
                     {
                         playerInfo.PlayerHomes.Remove(homeName);
                         player.SendMessage(0, $"{homeName} home deleted.", EnumChatType.OwnMessage);
+
+                        SaveConfig();
                     }
                 }
             }
