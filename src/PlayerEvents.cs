@@ -63,7 +63,6 @@ namespace VintageEx
         {
             PlayerInfo playerInfo = m_Core.GetPlayerInfo(player);
             playerInfo.DeathCount++;
-            playerInfo.BackPos = player.WorldData.EntityPlayer.SidedPos;
         }
     }
 }

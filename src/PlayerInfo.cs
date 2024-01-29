@@ -12,8 +12,7 @@ namespace VintageEx
         public int DeathCount = 0;
         public string JoinDate = "Unknown";
         public string LastSeen = "Unknown";
-        public EntityPos BackPos = null;
 
-        public Dictionary<string, EntityPos> PlayerHomes = new Dictionary<string, EntityPos>();
+        public Dictionary<string, Location> PlayerHomes = new Dictionary<string, Location>();
     }
 }
