@@ -59,10 +59,12 @@ namespace VintageEx
             m_Core.GetPlayerInfo(player).LastSeen = DateTime.Now.ToString();
         }
 
-        public void OnPlayerDeath(IServerPlayer player, DamageSource damageSource)
+        private void OnPlayerDeath(IServerPlayer player, DamageSource damageSource)
         {
             PlayerInfo playerInfo = m_Core.GetPlayerInfo(player);
             playerInfo.DeathCount++;
+            
+            m_Core.SavePlayerLocation(player);
         }
     }
 }

@@ -171,7 +171,7 @@ namespace VintageEx
            return TextCommandResult.Success();
         }
 
-        private void SavePlayerLocation(IServerPlayer player)
+        public void SavePlayerLocation(IServerPlayer player)
         {
             if (m_PlayerLastLocations.ContainsKey(player.PlayerUID))
             {
